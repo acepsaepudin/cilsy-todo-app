@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: kelas2acep
+      SecurityGroups:
+        - Ref: EC2SecurityGroup
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          amazon-linux-extras enable python3.8
+          yum install python3.8 git -y
+          pip3 install flask boto3 pymysql
+          git clone https://github.com/acepsaepudin/cilsy-todo-app.git /home/ec2-user/todo-app
+          python3 /home/ec2-user/todo-app/app.py &
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: todo_db
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: password123
+      PubliclyAccessible: true
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      # Konfigurasi pipeline Anda di sini
+      # Stages: CodeCommit -> CodeBuild -> CodeDeploy
+      ...
+

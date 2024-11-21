@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo List</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>Todo List</h1>
+    <form id="todo-form">
+        <input type="text" id="todo-title" placeholder="Add a todo" required>
+        <button type="submit">Add</button>
+    </form>
+    <ul id="todo-list"></ul>
+
+    <script>
+        const apiUrl = '/todos';
+
+        async function fetchTodos() {
+            const response = await fetch(apiUrl);
+            const todos = await response.json();
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = '';
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.textContent = todo.title;
+                li.setAttribute('data-id', todo.id);
+                li.addEventListener('click', () => deleteTodo(todo.id));
+                todoList.appendChild(li);
+            });
+        }
+
+        async function addTodo() {
+            const title = document.getElementById('todo-title').value;
+            await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+            fetchTodos();
+        }
+
+        async function deleteTodo(id) {
+            await fetch(apiUrl, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            fetchTodos();
+        }
+
+        document.getElementById('todo-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            addTodo();
+        });
+
+        fetchTodos();
+    </script>
+</body>
+</html>

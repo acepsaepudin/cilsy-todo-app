@@ -1,0 +1,11 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - pip3 install flask boto3
+  build:
+    commands:
+      - echo "Build step complete"
+artifacts:
+  files:
+    - '**/*'

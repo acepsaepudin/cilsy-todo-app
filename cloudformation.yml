@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  TodoAppDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: todo-app-table
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  TodoAppSecretsManager:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: prod/todo-app
+      SecretString: '{"dynamodb_table":"todo-app-table"}'
+
+  TodoAppEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: kelas2acep
+      ImageId: ami-0166fe664262f664c # Amazon Linux 2
+      SecurityGroupIds:
+        - Ref: TodoAppSecurityGroup
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          amazon-linux-extras enable python3.8
+          yum install python3.8 git -y
+          pip3 install flask boto3
+          git clone https://github.com/your-repo/todo-app.git /home/ec2-user/todo-app
+          python3 /home/ec2-user/todo-app/app.py &
+
+  TodoAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+
